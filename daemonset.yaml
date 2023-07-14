@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: healthz
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app: healthz
+  template:
+    metadata:
+      labels:
+        app: healthz
+    spec:
+      containers:
+      - image: machines/healthz
+        name: healthz
+        ports:
+        - containerPort: 5341
+          hostPort: 5341
+          name: http
+          protocol: TCP        
+        securityContext:
+          allowPrivilegeEscalation: true
+          capabilities:
+            add:
+            - NET_BIND_SERVICE
+            drop:
+            - ALL
+          runAsUser: 1000
