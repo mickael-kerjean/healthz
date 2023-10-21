@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -23,15 +24,21 @@ func main() {
 func handler(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
 	var errs []error
-	if err := test.TestDial(r.Context()); err != nil {
+	ctx, cancel := context.WithDeadline(r.Context(), time.Now().Add(5*time.Second))
+	defer cancel()
+	if err := test.TestDial(ctx); err != nil {
 		errs = append(errs, err)
 	}
-	if err := test.TestDNS(r.Context()); err != nil {
+	if err := test.TestDNS(ctx); err != nil {
 		errs = append(errs, err)
 	}
-	if err := test.TestK8s(r.Context()); err != nil {
+	if err := test.TestK8s(ctx); err != nil {
 		errs = append(errs, err)
 	}
+	if err := test.TestFS(ctx); err != nil {
+		errs = append(errs, err)
+	}
+
 	w.Header().Add("Content-Type", "text/plain")
 	if len(errs) == 0 {
 		slog.Info("HTTP", "status", 200, "time", time.Since(now)/1000/1000, "method", r.Method, "url", r.URL, "user-agent", r.Header.Get("User-Agent"))
