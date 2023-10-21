@@ -1,4 +1,4 @@
-FROM golang:alpine as builder
+FROM golang:1.21-alpine as builder
 WORKDIR $GOPATH/src/
 COPY . .
 RUN go build -o /go/bin/probe server.go
